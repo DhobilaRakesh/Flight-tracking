@@ -19,12 +19,13 @@ import 'leaflet.markercluster';
 import { Airport, Flight, FlightStatus } from '../../../../core/models/flight.model';
 import { Theme } from '../../../../core/services/theme.service';
 
-const TILES: Record<Theme, string> = {
-  light: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-};
-const ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+/**
+ * Keyless basemap (OpenStreetMap standard tiles). CARTO's free raster tiles now require an API key
+ * and show an "API KEY REQUIRED" watermark. Dark mode is done with a CSS filter (see styles.scss),
+ * so one tile source serves both themes.
+ */
+const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 const PLANE_PATH =
   'M12 2c.8 0 1.5.7 1.5 1.5V9l8 4.5v2l-8-2.2V19l2 1.5V22l-3.5-1L8.5 22v-1.5l2-1.5v-5.7l-8 2.2v-2l8-4.5V3.5C10.5 2.7 11.2 2 12 2z';
@@ -35,6 +36,18 @@ const STATUS_VAR: Record<FlightStatus, string> = {
   Delayed: 'var(--marker-delayed)',
   Arrived: 'var(--marker-arrived)',
 };
+
+/**
+ * leaflet.markercluster patches the *global* `window.L`. In an optimised (production) bundle the
+ * `import * as L` namespace is a copy that never receives that patch, so read the factory from the
+ * global as a fallback. If the plugin is unavailable we degrade to a plain feature group.
+ */
+type ClusterFactory = (options?: L.MarkerClusterGroupOptions) => L.FeatureGroup;
+function clusterFactory(): ClusterFactory | undefined {
+  const local = (L as unknown as { markerClusterGroup?: ClusterFactory }).markerClusterGroup;
+  const global = (window as unknown as { L?: { markerClusterGroup?: ClusterFactory } }).L?.markerClusterGroup;
+  return local ?? global;
+}
 
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -179,7 +192,6 @@ export class FlightMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.map) return;
     this.zone.runOutsideAngular(() => {
-      if (changes['theme']) this.setTiles();
       if (changes['airports']) this.syncAirports();
       if (changes['flights'] || changes['selected']) {
         this.syncMarkers();
@@ -260,8 +272,9 @@ export class FlightMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   /* ------------------------------ layers ------------------------------ */
 
   private createFlightLayer(): L.FeatureGroup {
-    return this.clustering
-      ? L.markerClusterGroup({
+    const factory = clusterFactory();
+    return this.clustering && factory
+      ? factory({
           maxClusterRadius: 30,
           disableClusteringAtZoom: 5,
           showCoverageOnHover: false,
@@ -271,12 +284,9 @@ export class FlightMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private setTiles(): void {
-    if (this.tileLayer) this.map!.removeLayer(this.tileLayer);
-    this.tileLayer = L.tileLayer(TILES[this.theme], {
-      attribution: ATTRIBUTION,
-      subdomains: 'abcd',
-      maxZoom: 12,
-    }).addTo(this.map!);
+    // Theme is applied with a CSS filter on the tile pane, so the tile layer is created once.
+    if (this.tileLayer) return;
+    this.tileLayer = L.tileLayer(TILE_URL, { attribution: ATTRIBUTION, maxZoom: 18 }).addTo(this.map!);
     this.tileLayer.bringToBack();
   }
 
@@ -337,7 +347,7 @@ export class FlightMapComponent implements AfterViewInit, OnChanges, OnDestroy {
         this.latest.delete(id);
       }
     }
-    (this.flightLayer as L.MarkerClusterGroup).refreshClusters?.();
+    (this.flightLayer as unknown as { refreshClusters?: () => void }).refreshClusters?.();
   }
 
   private iconFor(f: Flight, selected: boolean): L.DivIcon {
