@@ -1,0 +1,253 @@
+/* ---------- Design tokens ---------- */
+:root {
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #dbe3ee;
+  --text: #0f172a;
+  --text-muted: #475569;
+  --accent: #0369a1;
+  --accent-strong: #075985;
+  --accent-soft: #e0f2fe;
+  --on-accent: #ffffff;
+  --focus: #0ea5e9;
+
+  --st-scheduled: #475569;
+  --st-scheduled-bg: #e2e8f0;
+  --st-active: #047857;
+  --st-active-bg: #d1fae5;
+  --st-delayed: #b45309;
+  --st-delayed-bg: #fef3c7;
+  --st-arrived: #1d4ed8;
+  --st-arrived-bg: #dbeafe;
+
+  --marker-scheduled: #64748b;
+  --marker-active: #10b981;
+  --marker-delayed: #f59e0b;
+  --marker-arrived: #3b82f6;
+
+  --shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 4px 16px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 8px 32px rgb(15 23 42 / 0.18);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --header-h: 60px;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0b1220;
+  --surface: #121b2e;
+  --surface-2: #17223a;
+  --border: #243252;
+  --text: #e8eefb;
+  --text-muted: #9fb0cf;
+  --accent: #38bdf8;
+  --accent-strong: #7dd3fc;
+  --accent-soft: #0c2a43;
+  --on-accent: #06202f;
+  --focus: #7dd3fc;
+
+  --st-scheduled: #cbd5e1;
+  --st-scheduled-bg: #2a3650;
+  --st-active: #6ee7b7;
+  --st-active-bg: #0d3b2e;
+  --st-delayed: #fcd34d;
+  --st-delayed-bg: #433008;
+  --st-arrived: #93c5fd;
+  --st-arrived-bg: #15305e;
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 8px 32px rgb(0 0 0 / 0.55);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -48px;
+  z-index: 3000;
+  padding: 8px 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: top 0.15s;
+  &:focus {
+    top: 12px;
+  }
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------- Leaflet customisation ---------- */
+.leaflet-container {
+  font-family: var(--font);
+  background: var(--surface-2);
+}
+
+.flight-icon {
+  background: none !important;
+  border: none !important;
+  .plane {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
+    transition: transform 0.2s;
+  }
+  .plane svg {
+    width: 26px;
+    height: 26px;
+    stroke: #fff;
+    stroke-width: 1.2;
+    stroke-linejoin: round;
+  }
+  &.selected .plane {
+    transform: scale(1.35);
+    filter: drop-shadow(0 0 6px var(--focus)) drop-shadow(0 1px 2px rgb(0 0 0 / 0.5));
+  }
+  &.grounded .plane svg {
+    opacity: 0.85;
+  }
+}
+
+.airport-icon {
+  background: none !important;
+  border: none !important;
+  .apt {
+    display: inline-flex;
+    transform: translate(-50%, -50%);
+    padding: 1px 6px;
+    font: 700 10px/16px var(--font);
+    letter-spacing: 0.04em;
+    color: var(--text);
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+  }
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+.leaflet-popup-tip {
+  background: var(--surface);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  min-width: 190px;
+}
+.fp-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.fp-sub {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.fp-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 0;
+  font-size: 12.5px;
+  span:first-child {
+    color: var(--text-muted);
+  }
+  b {
+    font-weight: 600;
+  }
+}
+.fp-status {
+  font-weight: 700;
+  &.Scheduled { color: var(--st-scheduled); }
+  &.Active { color: var(--st-active); }
+  &.Delayed { color: var(--st-delayed); }
+  &.Arrived { color: var(--st-arrived); }
+}
+
+:root[data-theme='dark'] .leaflet-control-zoom a,
+:root[data-theme='dark'] .leaflet-bar a,
+:root[data-theme='dark'] .leaflet-control-layers {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+:root[data-theme='dark'] .leaflet-control-attribution {
+  background: rgb(18 27 46 / 0.8);
+  color: var(--text-muted);
+  a { color: var(--accent); }
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  font-weight: 700;
+  color: #0f172a;
+}

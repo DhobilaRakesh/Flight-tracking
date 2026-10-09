@@ -1,0 +1,107 @@
+:host { display: block; height: 100vh; height: 100dvh; }
+
+.shell { display: grid; grid-template-rows: var(--header-h) 1fr; height: 100%; }
+
+.layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'kpis kpis kpis'
+    'sidebar map details';
+  gap: 12px;
+  padding: 12px;
+  min-height: 0;
+  outline: none;
+}
+
+.kpis {
+  grid-area: kpis;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.sidebar-head { padding: 14px; border-bottom: 1px solid var(--border); }
+.sidebar-list { flex: 1; min-height: 0; overflow-y: auto; padding: 10px; overscroll-behavior: contain; }
+
+.map-area {
+  grid-area: map;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.details {
+  grid-area: details;
+  width: 380px;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: slide-in 0.2s ease-out;
+}
+
+.scrim { display: none; }
+
+.skeleton { display: grid; gap: 8px; }
+.sk {
+  height: 74px; border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+}
+.error { text-align: center; padding: 24px 12px; color: var(--text-muted); }
+.error button {
+  margin-top: 8px; padding: 8px 16px; border-radius: var(--radius-sm); border: 0;
+  background: var(--accent); color: var(--on-accent); font-weight: 600;
+}
+
+@keyframes slide-in { from { opacity: 0; transform: translateX(12px); } }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ---------- Tablet (<= 1100px): sidebar becomes a drawer, details a bottom sheet ---------- */
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'kpis' 'map';
+  }
+  .sidebar {
+    position: absolute; z-index: 1200; top: 0; bottom: 0; left: 0; width: min(360px, 88vw);
+    border-radius: 0 var(--radius) var(--radius) 0; transform: translateX(-102%); transition: transform 0.22s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar.open { transform: none; }
+  .scrim { display: block; position: absolute; inset: 0; z-index: 1100; border: 0; background: rgb(2 6 23 / 0.45); }
+  /* Tablet: floating panel on the right edge of the map, so the map stays the focus. */
+  .details {
+    grid-area: map; justify-self: end; align-self: start; z-index: 1000; position: relative;
+    width: min(380px, 62%); max-height: calc(100% - 24px); margin: 12px; box-shadow: var(--shadow-lg);
+  }
+  .layout { grid-template-rows: auto minmax(0, 1fr); }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+
+@media (max-width: 720px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Phone-width: bottom sheet. */
+  .details { justify-self: stretch; align-self: end; width: auto; max-height: 48%; margin: 8px; animation: rise 0.2s ease-out; }
+  .layout { gap: 8px; padding: 8px; }
+}
